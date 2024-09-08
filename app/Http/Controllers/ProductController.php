@@ -12,9 +12,39 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Product::all();
+        // return Product::all();
+         // Initialize query
+         $query = Product::query();
+
+         // Filtering by price (e.g., products with price greater than min_price and less than max_price)
+         if ($request->has('min_price')) {
+             $query->where('price', '>=', $request->min_price);
+         }
+ 
+         if ($request->has('max_price')) {
+             $query->where('price', '<=', $request->max_price);
+         }
+ 
+         // Sorting by name, price, or created_at
+         if ($request->has('sort_by')) {
+             $allowedSorts = ['name', 'price', 'created_at']; // Allowed fields to sort by
+             $sortBy = $request->get('sort_by');
+ 
+             if (in_array($sortBy, $allowedSorts)) {
+                 // Get the sort order from query params, default to 'asc'
+                 $sortOrder = $request->get('sort_order', 'asc');
+                 // Ensure the sort order is either 'asc' or 'desc', otherwise default to 'asc'
+                 $sortOrder = in_array($sortOrder, ['asc', 'desc']) ? $sortOrder : 'asc';
+ 
+                 // Apply sorting to the query
+                 $query->orderBy($sortBy, $sortOrder);
+             }
+         }
+ 
+         // Return the result of the query
+         return $query->get();
     }
 
     /**
