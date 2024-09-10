@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', 
+        'wallet_id', 
     ];
 
     /**
@@ -41,4 +43,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // Define the relationship between User and Wallet
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
 }

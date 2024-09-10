@@ -30,12 +30,19 @@ class AuthController extends Controller
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
-         // Create a wallet for the user
-         Wallet::create([
-            'user_id' => $user->id,
-            'balance' => 0.00, // Default balance
-            'currency' => 'USD' // You can change the default currency as needed
-        ]);
+         // If the user is a regular user, create a wallet
+        if ($role === 'user') {
+            $wallet = Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0.00, // Default balance
+                'currency' => 'USD' // You can change the default currency as needed
+            ]);
+
+            // Update the user's wallet_id after the wallet is created
+            $user->update([
+                'wallet_id' => $wallet->id
+            ]);
+        }
 
         $response = [
             'message' => 'User registered',	
