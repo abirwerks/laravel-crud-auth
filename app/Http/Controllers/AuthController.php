@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
@@ -13,16 +14,28 @@ class AuthController extends Controller
         $fields = $request->validate([
             'name' => 'required|string',
             'email' => 'required|string|unique:users,email',
-            'password' => 'required|string|confirmed'
+            'password' => 'required|string|confirmed',
+            'role' => 'in:user,admin'
         ]);
+
+        // Assign role, default to 'user' if not provided
+        $role = $request->input('role', 'user');
 
         $user = User::create([
             'name' => $fields['name'],
             'email' => $fields['email'],
-            'password' => bcrypt($fields['password'])
+            'password' => bcrypt($fields['password']),
+            'role' => $role 
         ]);
 
         $token = $user->createToken('myapptoken')->plainTextToken;
+
+         // Create a wallet for the user
+         Wallet::create([
+            'user_id' => $user->id,
+            'balance' => 0.00, // Default balance
+            'currency' => 'USD' // You can change the default currency as needed
+        ]);
 
         $response = [
             'message' => 'User registered',	
