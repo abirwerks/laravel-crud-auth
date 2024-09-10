@@ -44,9 +44,13 @@ class AuthController extends Controller
             ]);
         }
 
+        // Load the wallet relationship if it exists
+        $user->load('wallet');
+
         $response = [
             'message' => 'User registered',	
             'user' => $user,
+            'wallet' => $user->wallet,
             'token' => $token
         ];
 
@@ -55,7 +59,7 @@ class AuthController extends Controller
 
     public function login(Request $request) {
         $fields = $request->validate([
-            'email' => 'required|string',
+            'email' => 'required|string|email',
             'password' => 'required|string'
         ]);
 
@@ -75,9 +79,13 @@ class AuthController extends Controller
         $user->api_token = $token;
         $user->save();
 
+        // Load the wallet relationship if it exists
+        $user->load('wallet');
+
         $response = [
             'message' => 'Logged in successfully',
             'user' => $user,
+            // 'wallet' => $user->wallet, // Include wallet data
             'token' => $token
         ];
 
@@ -85,10 +93,64 @@ class AuthController extends Controller
     }
 
     public function logout(Request $request) {
+
         auth()->user()->tokens()->delete();
 
         return [
             'message' => 'Logged out'
         ];
     }
+
+    public function updateWallet(Request $request) {
+        // Validate the request input
+        $fields = $request->validate([
+            'balance' => 'required|numeric', // Ensure balance is a number
+            'currency' => 'required|string'  // Ensure currency is provided
+        ]);
+    
+        // Get the currently authenticated user
+        $user = auth()->user();
+    
+        // Check if the user has a wallet, create one if it doesn't exist and user is not admin
+        if (!$user->wallet && $user->role != 'admin') {
+            $wallet = Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0.00, // Default balance
+                'currency' => $fields['currency']
+            ]);
+    
+            // Update the user's wallet_id after the wallet is created
+            $user->wallet_id = $wallet->id;
+            $user->save();
+        } elseif ($user->role === 'admin') {
+            return response([
+                'message' => 'Admins do not have wallets.'
+            ], 403);
+        } else {
+            // Load the existing wallet
+            $wallet = $user->wallet;
+        }
+    
+        // Update the wallet balance and currency
+        $newBalance = $wallet->balance + $fields['balance'];
+    
+        // Check if the new balance would be less than 0
+        if ($newBalance < 0) {
+            return response([
+                'message' => 'Insufficient balance.'
+            ], 400);
+        }
+    
+        // Update wallet balance and currency
+        $wallet->update([
+            'balance' => $newBalance,
+            'currency' => $fields['currency']
+        ]);
+    
+        return response([
+            'message' => 'Wallet updated successfully.',
+            'wallet' => $wallet
+        ], 200);
+    }
+    
 }

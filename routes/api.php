@@ -34,6 +34,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Route to update wallet
+    Route::put('/wallet/update', [AuthController::class, 'updateWallet']);
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
