@@ -51,6 +51,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
+        // Store the token in the api_token column
+        $user->api_token = $token;
+        $user->save();
+
         $response = [
             'message' => 'Logged in successfully',
             'user' => $user,
