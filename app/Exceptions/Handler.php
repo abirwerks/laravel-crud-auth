@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,6 +48,22 @@ class Handler extends ExceptionHandler
                 'error' => 'Validation Error',
                 'message' => $exception->validator->errors()->first()
             ], 422);
+        }
+
+        // Custom response for NotFoundHttpException (404 error)
+        if ($exception instanceof NotFoundHttpException) {
+            return response()->json([
+                'error' => 'Resource not found',
+                'message' => 'The requested URL was not found on this server.',
+            ], 404);
+        }
+
+        // Custom response for MethodNotAllowedHttpException
+        if ($exception instanceof MethodNotAllowedHttpException) {
+            return response()->json([
+                'error' => 'Method not allowed',
+                'message' => 'The HTTP method is not allowed for the requested route.',
+            ], 405);
         }
 
         // You can customize other exceptions similarly
