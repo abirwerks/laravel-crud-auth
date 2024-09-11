@@ -30,13 +30,17 @@ Route::get('/products/search/{name}', [ProductController::class, 'search']);
 // Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::put('/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Route to update wallet
     Route::put('/wallet/update', [AuthController::class, 'updateWallet']);
+
+    // Route to get all users (admin only)
+    Route::get('/allUsers', [AuthController::class, 'getAllUsers'])->middleware('isAdmin');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->middleware('isAdmin');
+    Route::post('/products', [ProductController::class, 'store'])->middleware('isAdmin');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->middleware('isAdmin');
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {

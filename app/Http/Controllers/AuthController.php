@@ -152,5 +152,21 @@ class AuthController extends Controller
             'wallet' => $wallet
         ], 200);
     }
+
+    public function getAllUsers() {
+        // Ensure that only admins can access this route (additional precaution)
+        $user = auth()->user();
+        
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Access denied. Admins only.'], 403);
+        }
     
+        // Retrieve all users
+        $users = User::all();
+    
+        return response()->json([
+            'message' => 'Users retrieved successfully.',
+            'users' => $users
+        ], 200);
+    }    
 }
